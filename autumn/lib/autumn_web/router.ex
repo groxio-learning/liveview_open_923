@@ -75,6 +75,8 @@ defmodule AutumnWeb.Router do
 
       live "/readings/:id", ReadingLive.Show, :show
       live "/readings/:id/show/edit", ReadingLive.Show, :edit
+
+      live "/picker", PickerLive
     end
   end
 
