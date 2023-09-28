@@ -8,6 +8,15 @@ defmodule Autumn.Library do
 
   alias Autumn.Library.Reading
 
+  def notify(reading) do
+    Phoenix.PubSub.broadcast(Autumn.PubSub, topic(), "library changed")
+    reading
+  end
+
+  def topic do
+    "library"
+  end
+
   def list_readings do
     Repo.all(Reading)
   end
@@ -44,6 +53,7 @@ defmodule Autumn.Library do
     %Reading{}
     |> Reading.changeset(attrs)
     |> Repo.insert()
+    |> notify()
   end
 
   @doc """
@@ -62,6 +72,7 @@ defmodule Autumn.Library do
     reading
     |> Reading.changeset(attrs)
     |> Repo.update()
+    |> notify()
   end
 
   @doc """
@@ -78,6 +89,7 @@ defmodule Autumn.Library do
   """
   def delete_reading(%Reading{} = reading) do
     Repo.delete(reading)
+    |> notify()
   end
 
   @doc """
