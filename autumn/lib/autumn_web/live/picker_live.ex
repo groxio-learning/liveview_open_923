@@ -10,10 +10,12 @@ defmodule AutumnWeb.PickerLive do
   def render(assigns) do
     ~H"""
     <div>
-      <.phrase :for={product <- @products} text={product} />
+      <div>
+        <.phrase text={Enum.fetch!(@readings_list, @selected_index).phrase} />
+      </div>
       <div>
         <.button phx-click="previous">Previous</.button>
-          <.phrase text={Enum.fetch!(@readings_list, @selected_index).phrase} />
+        <.button phx-click="picker">Picker</.button>
         <.button phx-click="next">Next</.button>
       </div>
     </div>
@@ -41,7 +43,6 @@ defmodule AutumnWeb.PickerLive do
       socket
       |> assign(:readings_list, readings_list)
       |> assign(:selected_index, 0)
-      |> assign(:products, ~w(Hat Shoe Purse))
 
     {:ok, socket}
   end
@@ -50,6 +51,7 @@ defmodule AutumnWeb.PickerLive do
     Phoenix.PubSub.subscribe(Autumn.PubSub, Autumn.Library.topic())
   end
 
+  @impl true
   def handle_event("previous", _params, %{assigns: %{selected_index: selected_index, readings_list: readings_list}} = socket) do
     new_selected_index = if selected_index == 0 do
       length(readings_list) - 1
@@ -68,5 +70,26 @@ defmodule AutumnWeb.PickerLive do
     end
 
     {:noreply, assign(socket, :selected_index, new_selected_index)}
+  end
+
+  def handle_event("picker", _unsigned_params, socket) do
+    reading = Enum.fetch!(socket.assigns.readings_list, socket.assigns.selected_index)
+    {
+      :noreply,
+      push_navigate(socket, to: ~p"/eraser/#{reading}")
+    }
+  end
+
+  @impl true
+  def handle_info("library changed", socket) do
+
+    readings_list = Library.list_readings()
+
+    socket =
+      socket
+      |> assign(:readings_list, readings_list)
+      |> assign(:selected_index, 0)
+
+    {:noreply, socket}
   end
 end
