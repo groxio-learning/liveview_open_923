@@ -9,33 +9,45 @@ defmodule AutumnWeb.PickerLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <%!-- <div :for={{phrase, id} <- @readings_list} id={"reading-#{id}"} >
-      <p>
-        <%= phrase %>
-      </p>
-    </div> --%>
-
     <div>
+      <.phrase :for={product <- @products} text={product} />
       <div>
         <.button phx-click="previous">Previous</.button>
-          <span><%= Enum.fetch!(@readings_list, @selected_index).phrase %></span>
-        <.button phx-click="previous">Previous</.button>
+          <.phrase text={Enum.fetch!(@readings_list, @selected_index).phrase} />
+        <.button phx-click="next">Next</.button>
       </div>
     </div>
     """
   end
 
+  attr :text, :string, required: true
+  def phrase(assigns) do
+    ~H"""
+    <span>
+      <%= @text %>
+    </span>
+    """
+  end
+
   @impl true
   def mount(_params, _session, socket) do
+    if connected?(socket) do
+      subscribe()
+    end
+
     readings_list = Library.list_readings()
 
     socket =
       socket
       |> assign(:readings_list, readings_list)
       |> assign(:selected_index, 0)
-
+      |> assign(:products, ~w(Hat Shoe Purse))
 
     {:ok, socket}
+  end
+
+  defp subscribe() do
+    Phoenix.PubSub.subscribe(Autumn.PubSub, Autumn.Library.topic())
   end
 
   def handle_event("previous", _params, %{assigns: %{selected_index: selected_index, readings_list: readings_list}} = socket) do
