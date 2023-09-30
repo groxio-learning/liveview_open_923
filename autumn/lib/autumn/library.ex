@@ -35,7 +35,9 @@ defmodule Autumn.Library do
       ** (Ecto.NoResultsError)
 
   """
-  def get_reading!(id), do: Repo.get!(Reading, id)
+  def get_reading!(id) when is_integer(id), do: Repo.get!(Reading, id)
+
+  def get_reading!(id) when is_binary(id), do: get_reading!(String.to_integer(id))
 
   @doc """
   Creates a reading.
